@@ -22,14 +22,6 @@ export default async function DashboardPage() {
   return (
     <main className="flex flex-1 justify-center p-6">
       <div className="w-full max-w-3xl space-y-8">
-        <div>
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Logged in as{" "}
-            <span className="font-medium text-gray-900 dark:text-gray-100">{user.email}</span>
-          </p>
-        </div>
-
         <ExpenseList />
       </div>
     </main>

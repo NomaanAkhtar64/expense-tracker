@@ -61,3 +61,9 @@ export async function deleteExpense(id: string): Promise<void> {
     throw new Error(data.detail ?? "Failed to delete expense");
   }
 }
+
+export async function deleteExpenses(ids: string[]): Promise<void> {
+  // No bulk-delete endpoint on the backend - fire the single-delete calls in
+  // parallel instead.
+  await Promise.all(ids.map((id) => deleteExpense(id)));
+}
