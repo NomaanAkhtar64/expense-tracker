@@ -4,6 +4,18 @@ Newest first. Each entry: what was decided, why, and what the alternative would 
 
 ---
 
+## 2026-08-16 — Expense categories: hybrid global + per-user table, not a fixed enum
+
+**Decision**: `ExpenseCategory` is a single table with a nullable `user_id`. Rows with `user_id IS NULL` are global, pre-seeded categories (10 defaults: Food & Dining, Transportation, Housing, Utilities, Entertainment, Health & Fitness, Shopping, Travel, Education, Other — seeded via the `4e60c3ba57c7` migration's `upgrade()`, with fixed UUIDs so the seed is deterministic across environments). Rows with `user_id` set are a specific user's custom categories. `Expense.category_id` points at either kind interchangeably. A user's visible category list is `WHERE user_id IS NULL OR user_id = :current_user`.
+
+Uniqueness needed two separate constraints because Postgres treats each `NULL` as distinct: a partial unique index `ix_expense_categories_unique_global_name` on `name` (`WHERE user_id IS NULL`) keeps global category names unique against each other, and a regular `UniqueConstraint(user_id, name)` keeps each user's own custom names unique against their own rows (but doesn't — and shouldn't — stop two different users from both having a "Food" category).
+
+**Why**: Todo had this flagged as an open decision. A pure fixed enum can't support user-defined categories at all; a fully user-owned table (no global rows) means every new user starts with an empty category list. The hybrid gives new users a sane starting set for free while still allowing customization, without needing two separate tables or a polymorphic FK on `Expense.category_id`.
+
+**Cost of the alternative**: Two separate tables (`SystemCategory` / `UserCategory`) would avoid the nullable-`user_id` uniqueness dance, but `Expense.category_id` would then need to reference one of two tables — either a polymorphic association or two nullable FK columns on `Expense`, both messier than one partial index.
+
+---
+
 ## 2026-08-16 — JWT stored in httpOnly cookie, not localStorage
 
 **Decision**: Login goes through a Next.js Route Handler (`/api/auth/login`) that calls FastAPI, then sets the JWT as an httpOnly cookie on the response. All authenticated backend calls (e.g. `/auth/me` for the dashboard) happen server-side in Next.js via `lib/api.ts`, which reads the cookie with `next/headers` `cookies()` and attaches it as a Bearer token. The browser's JS never sees the token.

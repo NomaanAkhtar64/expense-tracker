@@ -4,8 +4,8 @@ Scaffold (auth, project setup) is done and verified end-to-end. Everything below
 
 ## Expense CRUD (core feature, do this first)
 
-- [ ] `Expense` model: amount, currency?, description, category, date, `user_id` (FK to `users`), created_at/updated_at
-- [ ] Alembic migration for `expenses` table
+- [x] `Expense` model: amount, currency, description, category, date, `user_id` (FK to `users`), created_at/updated_at
+- [x] Alembic migration for `expenses` table (and `expense_categories` — see Categories section)
 - [ ] `POST /expenses` — create
 - [ ] `GET /expenses` — list (scoped to current user)
 - [ ] `GET /expenses/{id}` — read one (must belong to current user — 404, not 403, if not)
@@ -18,8 +18,11 @@ Scaffold (auth, project setup) is done and verified end-to-end. Everything below
 
 ## Categories
 
-- [ ] Decide: fixed enum vs. user-defined `Category` table
-- [ ] If a table: migration + CRUD endpoints
+- [x] Decide: fixed enum vs. user-defined `Category` table — went with a hybrid: `ExpenseCategory` table with nullable `user_id` (NULL = global/pre-seeded, set = user-owned custom category). See `decisions.md`.
+- [x] Migration — `expense_categories` table created + seeded with 10 default global categories
+- [ ] `POST /categories` — create a custom category (owned by current user)
+- [ ] `GET /categories` — list categories visible to current user (global + their own)
+- [ ] `DELETE /categories/{id}` — delete a custom category (must be owned by current user, not global)
 - [ ] Category filter on the expense list (frontend + backend query param)
 
 ## Filtering & search

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from app.config import settings
 from app.database import Base
-from app.models import User  # noqa: F401 - ensures model is registered on Base.metadata
+from app.models import Expense, ExpenseCategory, User  # noqa: F401 - ensures models are registered on Base.metadata
 
 config = context.config
 if config.config_file_name is not None:
