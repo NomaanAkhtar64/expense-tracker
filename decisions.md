@@ -4,6 +4,16 @@ Newest first. Each entry: what was decided, why, and what the alternative would 
 
 ---
 
+## 2026-08-17 — Theme preference stored in a plain cookie, read server-side, not localStorage
+
+**Decision**: The light/dark toggle writes a plain (non-httpOnly) `theme` cookie via `document.cookie`. `app/layout.tsx` (a Server Component) reads it with `cookies()` from `next/headers` and puts the `dark` class on `<html>` directly in the server-rendered HTML. `ThemeProvider` (client) receives that resolved theme as an `initialTheme` prop and only needs to flip the class + rewrite the cookie on toggle - it never has to guess the theme on mount.
+
+**Why**: The common DIY approach (theme in `localStorage`) can't be read during server rendering, so the server always emits a default-theme guess; fixing the resulting flash/hydration-mismatch on a returning dark-mode user normally needs a blocking inline `<script>` in `<head>` that mutates the DOM before hydration (what `next-themes` does internally). This app already reads cookies server-side everywhere (`lib/api.ts`'s `backendFetch` does the same for the JWT), so reusing that pattern for theme avoids adding a second, different mechanism (inline script + `suppressHydrationWarning`) just for this one feature - genuinely zero flash, no extra script tag, no hydration-mismatch handling needed.
+
+**Cost of the alternative**: `localStorage` doesn't require `next/headers` cookie plumbing in the layout, but reintroduces the flash/hydration problem that the cookie approach sidesteps entirely.
+
+---
+
 ## 2026-08-16 — Expense categories: hybrid global + per-user table, not a fixed enum
 
 **Decision**: `ExpenseCategory` is a single table with a nullable `user_id`. Rows with `user_id IS NULL` are global, pre-seeded categories (10 defaults: Food & Dining, Transportation, Housing, Utilities, Entertainment, Health & Fitness, Shopping, Travel, Education, Other — seeded via the `4e60c3ba57c7` migration's `upgrade()`, with fixed UUIDs so the seed is deterministic across environments). Rows with `user_id` set are a specific user's custom categories. `Expense.category_id` points at either kind interchangeably. A user's visible category list is `WHERE user_id IS NULL OR user_id = :current_user`.
@@ -13,6 +23,8 @@ Uniqueness needed two separate constraints because Postgres treats each `NULL` a
 **Why**: Todo had this flagged as an open decision. A pure fixed enum can't support user-defined categories at all; a fully user-owned table (no global rows) means every new user starts with an empty category list. The hybrid gives new users a sane starting set for free while still allowing customization, without needing two separate tables or a polymorphic FK on `Expense.category_id`.
 
 **Cost of the alternative**: Two separate tables (`SystemCategory` / `UserCategory`) would avoid the nullable-`user_id` uniqueness dance, but `Expense.category_id` would then need to reference one of two tables — either a polymorphic association or two nullable FK columns on `Expense`, both messier than one partial index.
+
+**Follow-up gotcha found while testing `POST /categories` manually**: the two DB constraints (partial unique index on global names, `UniqueConstraint(user_id, name)` on a user's own names) don't stop a user from creating a *custom* category whose name matches an existing *global* one — those are different `user_id` values, so neither constraint fires, and the user ends up with two identically-named categories in their visible list. Added an explicit check in `routers/categories.py::create_category` that queries for any name collision across the categories actually visible to the user (global-or-own) before inserting, on top of the DB constraints (kept as a race-condition backstop via the `IntegrityError` catch).
 
 ---
 
