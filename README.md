@@ -1,15 +1,15 @@
 # Expense Tracker
 
-A full-stack expense tracker built as a portfolio project. This scaffold covers project setup and JWT-based authentication end-to-end; expense CRUD and analytics are built in a later session (see `todo.md`).
+A full-stack expense tracker built as a portfolio project: JWT auth, expense CRUD with categories (a hybrid of pre-seeded global categories and user-defined custom ones), a light/dark theme toggle, and a Next.js frontend backed by a FastAPI API. See `todo.md` for what's still unbuilt (filtering, analytics, deployment, auth hardening).
 
 ## Stack
 
 - **Backend**: FastAPI, SQLAlchemy 2.0 (async), Alembic, PostgreSQL
 - **Auth**: JWT (python-jose) with bcrypt password hashing (passlib)
-- **Frontend**: Next.js (App Router) + TypeScript, Tailwind CSS, TanStack Query
+- **Frontend**: Next.js 16 (App Router) + TypeScript, Tailwind CSS v4, TanStack Query
 - **Local dev**: Docker Compose (Postgres + FastAPI backend); frontend runs outside Docker via `npm run dev`
 - **Testing**: pytest (backend)
-- **CI**: GitHub Actions runs pytest on every push/PR
+- **CI**: GitHub Actions pytest workflow exists but is currently disabled (`.github/workflows/backend-tests.yml.disabled` — rename to `.yml` to re-enable)
 
 ## Project structure
 
@@ -65,4 +65,4 @@ Backend tests run against an in-memory SQLite database (see `decisions.md`), so 
 
 - `context.md` — project overview, architecture, current status
 - `decisions.md` — reasoning behind key choices (cookie vs localStorage, test DB, etc.)
-- `todo.md` — what's left to build (expense CRUD, filtering, analytics, deployment, ...)
+- `todo.md` — what's left to build (filtering, analytics, deployment, auth hardening, ...)
