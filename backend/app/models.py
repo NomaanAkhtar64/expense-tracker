@@ -38,6 +38,7 @@ class ExpenseCategory(Base):
             "name",
             unique=True,
             postgresql_where=text("user_id IS NULL"),
+            sqlite_where=text("user_id IS NULL"),
         ),
         # Each user's own custom categories must have unique names among their own rows.
         # (Doesn't constrain global rows against each other - Postgres treats every
