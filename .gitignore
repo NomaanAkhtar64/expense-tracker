@@ -1,0 +1,21 @@
+# backend
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.env
+backend/.pytest_cache/
+backend/*.egg-info/
+
+# frontend
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+frontend/out/
+
+# editors / os
+.DS_Store
+.vscode/
+.idea/
+
+# agent tooling state
+.claude/
